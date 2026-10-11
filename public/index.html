@@ -417,11 +417,13 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
               <fieldset>
                 <legend>I am interested in</legend>
                 <div class="checks">
-                  <label><input type="checkbox" name="int" value="A pilot in Lagos or Abuja"> A pilot in Lagos or Abuja</label>
+                  <label><input type="checkbox" name="int" value="A pilot outside Lagos and Abuja"> A pilot outside Lagos and Abuja</label>
                   <label><input type="checkbox" name="int" value="White-label app and admin portal"> White-label app and admin portal</label>
                   <label><input type="checkbox" name="int" value="Follow-up for our events"> Follow-up for our events</label>
                   <label><input type="checkbox" name="int" value="The maturity course library"> The maturity course library</label>
+                  <label><input type="checkbox" id="int-other" name="intOther"> Other</label>
                 </div>
+                <div class="field" id="f-iother" hidden><label for="iother" class="fl">Please specify</label><input id="iother" name="iother" type="text" maxlength="160"><div class="err" id="e-iother"></div></div>
               </fieldset>
               <div class="field"><label for="msg" class="fl">Your message</label><textarea id="msg" name="msg" maxlength="2000" placeholder="Tell us about your church or event, and what you would like from a pilot."></textarea><div class="err" id="e-msg"></div></div>
               <div class="checks consent">
@@ -624,12 +626,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
   }
   all('input[name="ptype"]', form).forEach(function (x) { x.addEventListener('change', syncP); });
   pEl.addEventListener('input', function () { setErr('pother', ''); });
-  syncLoc(); syncP();
+  var iWrap = $('#f-iother'), iEl = form.elements.iother, iChk = $('#int-other');
+  function syncI() { iWrap.hidden = !iChk.checked; if (!iChk.checked) { iEl.value = ''; setErr('iother', ''); } }
+  iChk.addEventListener('change', syncI);
+  iEl.addEventListener('input', function () { setErr('iother', ''); });
+  syncLoc(); syncP(); syncI();
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     formerr.hidden = true;
     var bad = false, phone = '';
-    ['org', 'pname', 'email', 'phone', 'loc', 'consent', 'msg', 'pother'].forEach(function (n) { setErr(n, ''); });
+    ['org', 'pname', 'email', 'phone', 'loc', 'consent', 'msg', 'pother', 'iother'].forEach(function (n) { setErr(n, ''); });
+    if (!iWrap.hidden && !val('iother')) { setErr('iother', 'Please specify.'); bad = true; }
     if (!pWrap.hidden && !val('pother')) { setErr('pother', 'Please specify.'); bad = true; }
     if (!val('msg')) { setErr('msg', 'Write us a short message.'); bad = true; }
     if (!form.elements.consent.checked) { setErr('consent', 'Please tick this box so we can reply to you.'); bad = true; }
@@ -644,6 +651,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
     if (bad) { var f = form.querySelector('.err:not(:empty)'); if (f) f.parentNode.querySelector('input,textarea').focus(); return; }
     var payload = {
       ptype: (form.querySelector('input[name="ptype"]:checked') || {}).value,
+      interestOther: iWrap.hidden ? '' : val('iother'),
       ptypeOther: pWrap.hidden ? '' : val('pother'),
       org: val('org'), pname: val('pname'), role: val('role'), email: val('email'),
       phone: phone, city: val('city'), location: locWrap.hidden ? '' : val('loc'),
@@ -656,7 +664,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
     fetch('/api/partner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (x) {
-        if (x.ok) { form.hidden = true; thanks.hidden = false; thanks.scrollIntoView({ block: 'nearest' }); form.reset(); syncLoc(); syncP(); $('#w-branches').textContent = ''; $('#w-attendance').textContent = ''; }
+        if (x.ok) { form.hidden = true; thanks.hidden = false; thanks.scrollIntoView({ block: 'nearest' }); form.reset(); syncLoc(); syncP(); syncI(); $('#w-branches').textContent = ''; $('#w-attendance').textContent = ''; }
         else {
           if (x.d && x.d.field === 'phone') setErr('phone', x.d.message || PHONE_ERR.DEFAULT);
           formerr.textContent = (x.d && x.d.message) || 'We could not send your message. Please try again in a few minutes.';
