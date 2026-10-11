@@ -8,6 +8,7 @@ const INTERESTS = ['A pilot in Lagos or Abuja', 'White-label app and admin porta
 const hits = new Map();
 
 function clean(v, max) { return String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, max); }
+function digits(v, max) { const s = String(v == null ? '' : v).trim(); return /^\d+$/.test(s) ? String(parseInt(s, 10)).slice(0, max) : ''; }
 function esc(v) { return String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function limited(ip) {
   const now = Date.now(), win = 10 * 60 * 1000, list = (hits.get(ip) || []).filter((t) => now - t < win);
@@ -33,13 +34,19 @@ module.exports = async (req, res) => {
   const d = {
     ptype: TYPES.includes(b.ptype) ? b.ptype : 'Other',
     org: clean(b.org, 160), pname: clean(b.pname, 120), role: clean(b.role, 120), email: clean(b.email, 200),
-    phone: clean(b.phone, 30), city: CITIES.includes(b.city) ? b.city : '', size: clean(b.size, 200),
+    phone: clean(b.phone, 30), city: CITIES.includes(b.city) ? b.city : '', location: clean(b.location, 120),
+    branches: digits(b.branches, 7), attendance: digits(b.attendance, 9),
     interests: Array.isArray(b.interests) ? b.interests.filter((x) => INTERESTS.includes(x)) : [],
     msg: clean(b.msg, 2000),
+    consent: b.consent === true, updates: b.updates === true,
   };
+  if (!d.msg) return fail(res, 400, 'Write us a short message.', 'msg');
+  if (!d.consent) return fail(res, 400, 'Please tick the box agreeing that we may contact you.', 'consent');
   if (!d.org) return fail(res, 400, 'Enter your organisation name.', 'org');
   if (!d.pname) return fail(res, 400, 'Enter your name.', 'pname');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return fail(res, 400, 'Enter a valid email address.', 'email');
+  if ((d.city === 'Elsewhere in Nigeria' || d.city === 'Outside Nigeria') && !d.location) return fail(res, 400, 'Tell us where you are based.', 'loc');
+  if (d.city === 'Lagos' || d.city === 'Abuja') d.location = '';
   if (d.phone) {
     const p = parsePhoneNumberFromString(d.phone);
     if (!p || !p.isValid()) return fail(res, 400, 'Enter a valid phone number for the country you chose.', 'phone');
@@ -49,7 +56,7 @@ module.exports = async (req, res) => {
   const key = process.env.RESEND_API_KEY, to = (process.env.NOTIFY_TO || '').split(',').map((x) => x.trim()).filter(Boolean);
   if (!key || !to.length) { console.error('partner form not configured: set RESEND_API_KEY and NOTIFY_TO'); return fail(res, 503, 'Messages cannot be sent right now. Please try again later.'); }
 
-  const rows = [['Registering as', d.ptype], ['Organisation', d.org], ['Name', d.pname], ['Role', d.role], ['Email', d.email], ['Phone or WhatsApp', d.phone], ['Based in', d.city], ['Size', d.size], ['Interested in', d.interests.join('; ')], ['Message', d.msg]].filter((r) => r[1]);
+  const rows = [['Registering as', d.ptype], ['Organisation', d.org], ['Name', d.pname], ['Role', d.role], ['Email', d.email], ['Phone or WhatsApp', d.phone], ['Based in', d.city], ['Location (city/town, state or country)', d.location], ['Number of branches', d.branches], ['Usual event attendance', d.attendance], ['Interested in', d.interests.join('; ')], ['Message', d.msg], ['Agreed to be contacted', 'Yes'], ['Newsletters and updates', d.updates ? 'Yes, subscribe' : 'No']].filter((r) => r[1]);
   const text = '1016 partner enquiry\n\n' + rows.map((r) => r[0] + ': ' + r[1]).join('\n');
   const html = '<h2 style="font-family:Georgia,serif">1016 partner enquiry</h2><table cellpadding="6" style="font-family:Arial,sans-serif;font-size:14px;border-collapse:collapse">' +
     rows.map((r) => '<tr><td style="color:#555;vertical-align:top;white-space:nowrap">' + esc(r[0]) + '</td><td style="white-space:pre-wrap">' + esc(r[1]) + '</td></tr>').join('') + '</table>';
