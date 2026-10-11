@@ -107,8 +107,10 @@ button[disabled] { opacity: 0.6; cursor: progress; }
 .tab[aria-current="page"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
 .tab.cta { color: var(--accent); }
 .tab.cta[aria-current="page"] { color: var(--accent); }
-#theme { order: 1; margin-left: auto; background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.85rem; cursor: pointer; }
+#theme { order: 1; margin-left: auto; display: grid; place-items: center; width: 2.4rem; height: 2.4rem; background: transparent; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 0; cursor: pointer; }
+#theme svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 #theme:hover { border-color: var(--accent); }
+@media (max-width: 899px) { .tabs { order: 3; flex: 1 0 100%; } }
 @media (min-width: 900px) { .tabs { order: 1; } #theme { order: 2; margin-left: 0; } }
 
 .stage { position: relative; flex: 1; min-height: 0; perspective: 2400px; perspective-origin: 50% 40%; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
@@ -245,7 +247,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
       <button class="tab" type="button" data-go="mission">Mission</button>
       <button class="tab cta" type="button" data-go="partner">Partner with us</button>
     </nav>
-    <button id="theme" type="button" aria-label="Switch between dark and light">Light mode</button>
+    <button id="theme" type="button" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
   </div>
 
   <main class="stage" id="stage">
@@ -472,7 +474,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
     var t = root.getAttribute('data-theme');
     return t || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
   }
-  function themeLabel() { btn.textContent = theme() === 'dark' ? 'Light mode' : 'Dark mode'; }
+  var ICON_SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>', ICON_MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.8 6.8 0 0 0 10.7 10.7z"/></svg>';
+  function themeLabel() { var d = theme() === 'dark'; btn.innerHTML = d ? ICON_SUN : ICON_MOON; var l = d ? 'Switch to light mode' : 'Switch to dark mode'; btn.setAttribute('aria-label', l); btn.title = l; }
   try { var sv = localStorage.getItem('1016-theme'); if (sv) root.setAttribute('data-theme', sv); } catch (e) {}
   themeLabel();
   btn.addEventListener('click', function () {
@@ -489,9 +492,11 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
     tabs.forEach(function (t) { if (t.getAttribute('data-go') === keys[cur]) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
     var active = $('.tab[aria-current="page"]');
     if (active) { try { active.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }
-    $('#prev').disabled = cur === 0; $('#next').disabled = cur === pages.length - 1;
+    var last = cur === pages.length - 1;
+    $('#prev').disabled = cur === 0; $('#next').disabled = false;
     $('#prev-t').textContent = cur > 0 ? titles[cur - 1] : '';
-    $('#next-t').textContent = cur < pages.length - 1 ? titles[cur + 1] : '';
+    $('#next-t').textContent = last ? 'Back to the start' : titles[cur + 1];
+    $('#next small').textContent = last ? 'Home' : 'Next';
     $('#count').textContent = (cur + 1) + ' / ' + pages.length;
     document.title = cur === 0 ? '1016 Technologies · Converts Retention Platform' : titles[cur] + ' · 1016 Technologies';
   }
@@ -523,7 +528,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
     if (t) go(t.getAttribute('data-go'));
   });
   $('#prev').addEventListener('click', function () { go(cur - 1); });
-  $('#next').addEventListener('click', function () { go(cur + 1); });
+  $('#next').addEventListener('click', function () { go(cur === pages.length - 1 ? 0 : cur + 1); });
   document.addEventListener('keydown', function (e) {
     var tag = (e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.metaKey || e.ctrlKey || e.altKey) return;
