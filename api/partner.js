@@ -4,7 +4,7 @@ const { parsePhoneNumberFromString } = require('libphonenumber-js/max');
 
 const TYPES = ['Church', 'Event organiser or ministry', 'Other'];
 const CITIES = ['Lagos', 'Abuja', 'Elsewhere in Nigeria', 'Outside Nigeria'];
-const INTERESTS = ['A pilot in Lagos or Abuja', 'White-label app and admin portal', 'Follow-up for our events', 'The maturity course library'];
+const INTERESTS = ['A pilot outside Lagos and Abuja', 'White-label app and admin portal', 'Follow-up for our events', 'The maturity course library'];
 const hits = new Map();
 
 function clean(v, max) { return String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, max); }
@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
 
   const d = {
     ptype: TYPES.includes(b.ptype) ? b.ptype : 'Other',
-    ptypeOther: clean(b.ptypeOther, 120),
+    ptypeOther: clean(b.ptypeOther, 120), interestOther: clean(b.interestOther, 160),
     org: clean(b.org, 160), pname: clean(b.pname, 120), role: clean(b.role, 120), email: clean(b.email, 200),
     phone: clean(b.phone, 30), city: CITIES.includes(b.city) ? b.city : '', location: clean(b.location, 120),
     branches: digits(b.branches, 7), attendance: digits(b.attendance, 9),
@@ -44,6 +44,8 @@ module.exports = async (req, res) => {
   if (!d.msg) return fail(res, 400, 'Write us a short message.', 'msg');
   if (!d.consent) return fail(res, 400, 'Please tick the box agreeing that we may contact you.', 'consent');
   if (d.ptype !== 'Other') d.ptypeOther = '';
+  if (b.interestOther === undefined || b.interestOther === null) d.interestOther = '';
+  if (d.interestOther) d.interests.push('Other: ' + d.interestOther);
   if (d.ptype === 'Other' && !d.ptypeOther) return fail(res, 400, 'Please specify.', 'pother');
   if (!d.org) return fail(res, 400, 'Enter your organisation name.', 'org');
   if (!d.pname) return fail(res, 400, 'Enter your name.', 'pname');
