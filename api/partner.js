@@ -33,6 +33,7 @@ module.exports = async (req, res) => {
 
   const d = {
     ptype: TYPES.includes(b.ptype) ? b.ptype : 'Other',
+    ptypeOther: clean(b.ptypeOther, 120),
     org: clean(b.org, 160), pname: clean(b.pname, 120), role: clean(b.role, 120), email: clean(b.email, 200),
     phone: clean(b.phone, 30), city: CITIES.includes(b.city) ? b.city : '', location: clean(b.location, 120),
     branches: digits(b.branches, 7), attendance: digits(b.attendance, 9),
@@ -42,6 +43,8 @@ module.exports = async (req, res) => {
   };
   if (!d.msg) return fail(res, 400, 'Write us a short message.', 'msg');
   if (!d.consent) return fail(res, 400, 'Please tick the box agreeing that we may contact you.', 'consent');
+  if (d.ptype !== 'Other') d.ptypeOther = '';
+  if (d.ptype === 'Other' && !d.ptypeOther) return fail(res, 400, 'Please specify.', 'pother');
   if (!d.org) return fail(res, 400, 'Enter your organisation name.', 'org');
   if (!d.pname) return fail(res, 400, 'Enter your name.', 'pname');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return fail(res, 400, 'Enter a valid email address.', 'email');
@@ -56,15 +59,15 @@ module.exports = async (req, res) => {
   const key = process.env.RESEND_API_KEY, to = (process.env.NOTIFY_TO || '').split(',').map((x) => x.trim()).filter(Boolean);
   if (!key || !to.length) { console.error('partner form not configured: set RESEND_API_KEY and NOTIFY_TO'); return fail(res, 503, 'Messages cannot be sent right now. Please try again later.'); }
 
-  const rows = [['Registering as', d.ptype], ['Organisation', d.org], ['Name', d.pname], ['Role', d.role], ['Email', d.email], ['Phone or WhatsApp', d.phone], ['Based in', d.city], ['Location (city/town, state or country)', d.location], ['Number of branches', d.branches], ['Usual event attendance', d.attendance], ['Interested in', d.interests.join('; ')], ['Message', d.msg], ['Agreed to be contacted', 'Yes'], ['Newsletters and updates', d.updates ? 'Yes, subscribe' : 'No']].filter((r) => r[1]);
-  const text = '1016 partner enquiry\n\n' + rows.map((r) => r[0] + ': ' + r[1]).join('\n');
-  const html = '<h2 style="font-family:Georgia,serif">1016 partner enquiry</h2><table cellpadding="6" style="font-family:Arial,sans-serif;font-size:14px;border-collapse:collapse">' +
+  const rows = [['Registering as', d.ptype === 'Other' ? 'Other: ' + d.ptypeOther : d.ptype], ['Organisation', d.org], ['Name', d.pname], ['Role', d.role], ['Email', d.email], ['Phone or WhatsApp', d.phone], ['Based in', d.city], ['Location (city/town, state or country)', d.location], ['Number of branches', d.branches], ['Usual event attendance', d.attendance], ['Interested in', d.interests.join('; ')], ['Message', d.msg], ['Agreed to be contacted', 'Yes'], ['Newsletters and updates', d.updates ? 'Yes, subscribe' : 'No']].filter((r) => r[1]);
+  const text = 'New partner enquiry\n\n' + rows.map((r) => r[0] + ': ' + r[1]).join('\n');
+  const html = '<h2 style="font-family:Georgia,serif">New partner enquiry</h2><table cellpadding="6" style="font-family:Arial,sans-serif;font-size:14px;border-collapse:collapse">' +
     rows.map((r) => '<tr><td style="color:#555;vertical-align:top;white-space:nowrap">' + esc(r[0]) + '</td><td style="white-space:pre-wrap">' + esc(r[1]) + '</td></tr>').join('') + '</table>';
   try {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: process.env.MAIL_FROM || '1016 Partners <onboarding@resend.dev>', to, reply_to: d.email, subject: '1016 partner enquiry: ' + d.org + ' (' + d.ptype + ')', text, html }),
+      body: JSON.stringify({ from: process.env.MAIL_FROM || '1016 Partners <onboarding@resend.dev>', to, reply_to: d.email, subject: 'New Partner Enquiry: ' + d.org + ' (' + (d.ptype === 'Other' ? d.ptypeOther : d.ptype).replace(/\b\w/g, (c) => c.toUpperCase()) + ')', text, html }),
     });
     if (!r.ok) { console.error('resend failed', r.status, (await r.text()).slice(0, 300), 'PARTNER_ENQUIRY', JSON.stringify(d)); return fail(res, 502, 'We could not send your message. Please try again in a few minutes.'); }
     return res.status(200).json({ ok: true });
