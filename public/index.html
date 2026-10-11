@@ -493,10 +493,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
     var active = $('.tab[aria-current="page"]');
     if (active) { try { active.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }
     var last = cur === pages.length - 1;
-    $('#prev').disabled = cur === 0; $('#next').disabled = false;
-    $('#prev-t').textContent = cur > 0 ? titles[cur - 1] : '';
-    $('#next-t').textContent = last ? 'Back to the start' : titles[cur + 1];
-    $('#next small').textContent = last ? 'Home' : 'Next';
+    $('#prev').disabled = cur === 0; $('#next').disabled = last;
+    $('#prev-t').textContent = last ? 'Back to the start' : (cur > 0 ? titles[cur - 1] : '');
+    $('#prev small').textContent = last ? 'Home' : 'Previous';
+    $('#next-t').textContent = last ? '' : titles[cur + 1];
     $('#count').textContent = (cur + 1) + ' / ' + pages.length;
     document.title = cur === 0 ? '1016 Technologies · Converts Retention Platform' : titles[cur] + ' · 1016 Technologies';
   }
@@ -527,8 +527,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
     var t = e.target.closest('[data-go]');
     if (t) go(t.getAttribute('data-go'));
   });
-  $('#prev').addEventListener('click', function () { go(cur - 1); });
-  $('#next').addEventListener('click', function () { go(cur === pages.length - 1 ? 0 : cur + 1); });
+  $('#prev').addEventListener('click', function () { go(cur === pages.length - 1 ? 0 : cur - 1); });
+  $('#next').addEventListener('click', function () { go(cur + 1); });
   document.addEventListener('keydown', function (e) {
     var tag = (e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.metaKey || e.ctrlKey || e.altKey) return;
