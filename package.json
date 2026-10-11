@@ -1,0 +1,8 @@
+{
+  "name": "1016-technologies-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "1016 Technologies Ltd marketing site and partner enquiry endpoint",
+  "engines": { "node": "22.x" },
+  "dependencies": { "libphonenumber-js": "^1.12.0" }
+}
