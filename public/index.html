@@ -10,6 +10,8 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <title>1016 Technologies · Converts Retention Platform</title>
+<!-- BETA: remove the next line at public launch so search engines can list the site -->
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="1016 is a converts retention platform. It connects new converts to a nearby church after every event and walks them through four levels of growth.">
 <meta name="theme-color" content="#0d171e">
 <meta property="og:type" content="website">
@@ -151,6 +153,17 @@ button[disabled] { opacity: 0.6; cursor: progress; }
 .mv p { margin: 0.4rem 0 0; font-family: var(--display); font-size: clamp(1.15rem, 2.2vw, 1.5rem); line-height: 1.35; text-wrap: pretty; }
 .mvl { font: 500 0.95rem/1.4 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
 @media (max-width: 720px) { .mv { grid-template-columns: 1fr; } }
+.plink { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; letter-spacing: inherit; }
+.plink:hover { color: var(--fg); }
+#privacy { width: min(44rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); padding: 0; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 14px; }
+#privacy::backdrop { background: rgba(0, 0, 0, 0.55); }
+#privacy .pv { padding: 1.4rem 1.6rem 1.8rem; overflow-y: auto; max-height: calc(100vh - 2rem); font-size: 1.05rem; line-height: 1.55; }
+#privacy h2 { font-family: var(--display); font-size: 1.8rem; margin: 0 0 0.4rem; }
+#privacy h3 { font-size: 1.05rem; margin: 1.1rem 0 0.2rem; }
+#privacy p { margin: 0.2rem 0; color: var(--muted); }
+#privacy .draft { display: inline-block; font: 500 0.85rem var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0.15rem 0.7rem; margin-bottom: 0.6rem; }
+#privacy .pclose { position: sticky; float: right; top: 0; background: transparent; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 0.3rem 0.9rem; cursor: pointer; font: inherit; font-size: 0.9rem; }
+#privacy .pclose:hover { border-color: var(--accent); }
 .verse cite { font: 500 0.95rem/1.4 var(--mono); letter-spacing: 0.1em; color: var(--accent); font-style: normal; }
 
 /* how it works */
@@ -429,7 +442,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
               </fieldset>
               <div class="field"><label for="msg" class="fl">Your message</label><textarea id="msg" name="msg" maxlength="2000" placeholder="Tell us about your church or event, and what you would like from a pilot."></textarea><div class="err" id="e-msg"></div></div>
               <div class="checks consent">
-                <label><input type="checkbox" id="consent" name="consent"> <span>I agree that 1016 Technologies may contact me about this enquiry, by email, phone or WhatsApp.</span></label>
+                <label><input type="checkbox" id="consent" name="consent"> <span>I agree that 1016 Technologies may contact me about this enquiry, by email, phone or WhatsApp. See our <button type="button" class="plink" data-privacy>privacy notice</button>.</span></label>
                 <div class="err" id="e-consent"></div>
                 <label><input type="checkbox" id="updates" name="updates"> <span>Send me news, newsletters and updates about 1016 <span class="opt">(optional, you can unsubscribe at any time)</span>.</span></label>
               </div>
@@ -452,11 +465,39 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
 
   <div class="bottom">
     <button class="nav" id="prev" type="button"><small>Previous</small><b id="prev-t"></b></button>
-    <span class="count" id="count" aria-live="polite"></span>
+    <span class="count"><span id="count" aria-live="polite"></span> &middot; <button type="button" class="plink" data-privacy>Privacy</button></span>
     <button class="nav" id="next" type="button"><small>Next</small><b id="next-t"></b></button>
   </div>
 </div>
 
+<dialog id="privacy" aria-labelledby="pv-t">
+  <div class="pv">
+    <button type="button" class="pclose" id="pclose">Close</button>
+    <span class="draft">Draft</span>
+    <h2 id="pv-t">Privacy notice</h2>
+    <p>This notice is a draft and is being reviewed. Details in [brackets] will be completed before launch. Last updated: [date of launch].</p>
+    <h3>Who we are</h3>
+    <p>1016 Technologies Ltd (RC [number]) runs the 1016 Converts Retention Platform. We are the controller of the personal data described here. Contact: hello@1016tech.com, [registered address].</p>
+    <h3>What we collect</h3>
+    <p>Only what you enter in the partner form: your organisation, name, role, email address, phone or WhatsApp number, where you are based, number of branches, usual event attendance, what you are interested in, and your message. We also record whether you agreed to be contacted and whether you chose to receive newsletters and updates.</p>
+    <h3>Why we use it</h3>
+    <p>To reply to your enquiry, to plan and run pilots with partner churches and organisers, and, only if you ticked the box, to send you newsletters and updates. We do not sell your data and we do not use it for advertising.</p>
+    <h3>Our lawful basis</h3>
+    <p>Your consent, which you give by ticking the box on the form. You can withdraw it at any time.</p>
+    <h3>Who sees it</h3>
+    <p>Our team, and the service providers that run this site and our email: Vercel (hosting), Resend (email delivery) and Google (our mailbox). These providers may process data outside Nigeria. We use them under terms that require them to protect your data.</p>
+    <h3>How long we keep it</h3>
+    <p>[24 months] after our last contact with you, unless you ask us to delete it sooner, or the law requires us to keep it longer.</p>
+    <h3>Your rights</h3>
+    <p>You may ask us to give you a copy of your data, correct it, delete it, restrict or object to how we use it, or withdraw your consent. Email hello@1016tech.com and we will reply within [30 days]. You may also complain to the Nigeria Data Protection Commission (ndpc.gov.ng).</p>
+    <h3>Cookies and tracking</h3>
+    <p>This site does not use cookies for tracking or advertising. It remembers your light or dark mode choice on your own device.</p>
+    <h3>Children</h3>
+    <p>This site is for church and ministry leaders. It is not directed at anyone under 18.</p>
+    <h3>Changes</h3>
+    <p>If we change this notice we will post the new version here with a new date.</p>
+  </div>
+</dialog>
 <script src="/assets/iti/js/intlTelInputWithUtils.min.js"></script>
 <script>
 (function () {
@@ -529,7 +570,14 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px
   });
   $('#prev').addEventListener('click', function () { go(cur === pages.length - 1 ? 0 : cur - 1); });
   $('#next').addEventListener('click', function () { go(cur + 1); });
+  var pv = $('#privacy'), pvFrom = null;
+  function openPv(e) { e.preventDefault(); pvFrom = e.currentTarget; if (pv.showModal) pv.showModal(); else pv.setAttribute('open', ''); pv.querySelector('.pv').scrollTop = 0; }
+  all('[data-privacy]').forEach(function (b) { b.addEventListener('click', openPv); });
+  $('#pclose').addEventListener('click', function () { pv.close(); });
+  pv.addEventListener('click', function (e) { if (e.target === pv) pv.close(); });
+  pv.addEventListener('close', function () { if (pvFrom) pvFrom.focus(); });
   document.addEventListener('keydown', function (e) {
+    if (pv.open) return;
     var tag = (e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'ArrowRight') go(cur + 1);
